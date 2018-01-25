@@ -98,6 +98,14 @@ extend self
       bus.inspect(io)
       io << ' ' << destination << ' ' << path
     end
+
+    def propRetriever(path)
+      DBus::PropRetriever.new(self, path)
+    end
+
+    def getProp(path, key)
+      DBus::PropRetriever.new(self, path).get(key)
+    end
   end
   
   
@@ -392,6 +400,20 @@ extend self
     
     def finalize
       LibDBus.pending_call_unref(@pending)
+    end
+  end
+
+  class PropRetriever
+    @interface : DBus::Object
+    @path : String
+
+    def initialize(interface, path)
+      @interface = interface
+      @path = path
+    end
+
+    def get(key)
+      @interface.interface("org.freedesktop.DBus.Properties").call("Get", [@path, key]).reply.first.as(DBus::Variant).value
     end
   end
 end
